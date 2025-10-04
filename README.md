@@ -1,73 +1,61 @@
-# React + TypeScript + Vite
+FE (React + TypeScript + Vite)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+<실행 (Vite 개발 서버)>
+npm run dev      # 개발 서버: http://localhost:5173
+npm run build    # 배포용 빌드: dist/ 생성
+npm run preview  # 빌드 미리보기 (dist/ 서빙)
 
-Currently, two official plugins are available:
+<폴더 구조 (핵심)>
+src/
+├─ app/            # 앱 엔트리/레이아웃/라우팅 (App.tsx, router.tsx)
+├─ pages/          # 라우트 화면 (예: Home, Settings)
+├─ features/       # 기능 묶음 (예: auth, live-monitoring)
+├─ entities/       # 도메인 타입/모델 (예: user)
+├─ shared/         # 공통(재사용) 모듈
+│  ├─ api/         # axios 인스턴스, 인터셉터
+│  ├─ config/      # 환경변수(env.ts), 라우트 상수(routes.ts)
+│  ├─ styles/      # 전역 스타일(index.css)
+│  ├─ ui/          # 버튼/인풋/모달 등 공통 UI
+│  ├─ hooks/       # 범용 훅
+│  └─ lib/         # 범용 유틸
+└─ assets/         # 이미지/아이콘/폰트
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+<백엔드와의 매핑>
 
-## React Compiler
+config → shared/config
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+controllers → features/*
 
-## Expanding the ESLint configuration
+middlewares → shared/api/interceptors
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+models → entities/*
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+routes → app/router.tsx
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+swagger → docs/api
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+<환경변수>
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+.env는 커밋 금지, **.env.example**만 공유 (키 이름만)
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+Vite 규칙: 키는 VITE_ 접두사 필요
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+# .env.example
+VITE_API_BASE_URL=http://localhost:8080
+
+
+모든 API 호출은 src/shared/api/client.ts 통해서만
+
+<Git 주의사항 (중요)>
+
+올리지 말 것: node_modules/, dist/, .env, .DS_Store
+
+올려도 됨: .env.example (샘플 키만)
+
+<팀 작업 요약>
+
+페이지는 pages/, 기능은 features/, 공통은 shared/
+
+실행은 npm run dev, 배포는 npm run build
+
+브랜치 → PR로 리뷰 후 머지
