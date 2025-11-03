@@ -1,7 +1,29 @@
 {
+<<<<<<< HEAD
+  "compilerOptions": {
+    "target": "ES2020",
+    "lib": ["ES2020", "DOM"],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "jsx": "react-jsx",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "types": ["vite/client"],
+    "noEmit": true,          // TS가 파일을 내보내지 않게(빌드는 Vite가 함)
+    "isolatedModules": true, // 모듈 단위 체크 강화
+    "baseUrl": ".",
+    "paths": { "@/*": ["src/*"] }
+  },
+  "include": ["src/**/*", "vite.config.ts"], // 각자 파일 경로에 맞게 설정
+  "exclude": ["node_modules", "dist"] // 각자 파일 경로에 맞게 설정
+}
+=======
   "files": [],
   "references": [
     { "path": "./tsconfig.app.json" },
     { "path": "./tsconfig.node.json" }
   ]
 }
+>>>>>>> origin/feat/fe-skeleton
