@@ -28,3 +28,4 @@ dist-ssr
 *.sln
 *.sw?
 >>>>>>> origin/feat/fe-skeleton
+.DS_Store
