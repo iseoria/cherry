@@ -14,7 +14,7 @@ interface ProfileProps {
   onUpdateBabyInfo: (info: {name: string, gender: 'male' | 'female' | '', birthDate: string}) => void;
 }
 
-export function Profile({ onBack, userInfo, babyInfo, onUpdateBabyInfo }: ProfileProps) {
+export default function Profile({ onBack, userInfo, babyInfo, onUpdateBabyInfo }: ProfileProps) {
   const [babyName, setBabyName] = useState(babyInfo?.name || '');
   const [babyGender, setBabyGender] = useState<'male' | 'female' | ''>(babyInfo?.gender || '');
   const [babyBirthDate, setBabyBirthDate] = useState(babyInfo?.birthDate || '');

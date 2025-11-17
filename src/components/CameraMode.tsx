@@ -7,7 +7,7 @@ interface CameraModeProps {
   onBack: () => void;
 }
 
-export function CameraMode({ onBack }: CameraModeProps) {
+export default function CameraMode({ onBack }: CameraModeProps) {
   return (
     <div className="bg-gradient-to-br from-white via-purple-50 to-violet-100 flex flex-col p-4 mx-auto" style={{ width: '412px', height: '917px' }}>
       <div className="mb-4">

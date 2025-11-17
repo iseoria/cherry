@@ -24,7 +24,7 @@ interface ReportsProps {
   dayRecords: DayRecord[];
 }
 
-export function Reports({ dayRecords }: ReportsProps) {
+export default function Reports({ dayRecords }: ReportsProps) {
   const [analysisRange, setAnalysisRange] = useState<'daily' | 'weekly' | 'monthly'>('daily');
   const [startDate, setStartDate] = useState<string>(
     new Date().toISOString().split('T')[0]
@@ -506,7 +506,7 @@ export function Reports({ dayRecords }: ReportsProps) {
           </div>
         </div>
 
-        {/* 우려사항 */}
+       {/* 우려사항 */}
         {aiAnalysis.concerns.length > 0 && (
           <div className="space-y-2 mt-3">
             <h3 className="flex items-center">
@@ -569,7 +569,7 @@ export function Reports({ dayRecords }: ReportsProps) {
             </div>
           </div>
           <div className="text-purple-400">›</div>
-        </div>
+        </div> 
       </Card>
     </div>
   );

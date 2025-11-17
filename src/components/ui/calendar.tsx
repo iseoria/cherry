@@ -1,8 +1,10 @@
 "use client";
 
 import * as React from "react";
-import { ChevronLeft, ChevronRight, ChevronUp, ChevronDown } from "lucide-react";
-import { DayPicker, type DayPickerProps } from "react-day-picker";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import type { DayPickerProps } from "react-day-picker";
+import { DayPicker } from "react-day-picker";
+
 import { cn } from "./utils";
 import { buttonVariants } from "./button";
 
@@ -11,19 +13,16 @@ function Calendar({
   classNames,
   showOutsideDays = true,
   ...props
-}: React.ComponentProps<typeof DayPicker>) {
-  // v9.11.1: components.Chevron 하나만 받음 (orientation: 'left' | 'right' | 'up' | 'down')
-  const components: DayPickerProps["components"] = {
-    Chevron: ({ className, orientation = "right", size }) => {
-      const Icon =
-        orientation === "left" ? ChevronLeft :
-        orientation === "up" ? ChevronUp :
-        orientation === "down" ? ChevronDown :
-        ChevronRight;
-
-      return <Icon className={className} size={size ?? 16} />;
-    },
-  };
+}: DayPickerProps) {
+  type NavIconProps = { className?: string };
+  const customComponents = {
+    IconLeft: ({ className }: NavIconProps) => (
+      <ChevronLeft className={cn("size-4", className)} />
+    ),
+    IconRight: ({ className }: NavIconProps) => (
+      <ChevronRight className={cn("size-4", className)} />
+    ),
+  } as unknown as DayPickerProps["components"];
 
   return (
     <DayPicker
@@ -37,23 +36,24 @@ function Calendar({
         nav: "flex items-center gap-1",
         nav_button: cn(
           buttonVariants({ variant: "outline" }),
-          "size-7 bg-transparent p-0 opacity-50 hover:opacity-100",
+          "size-7 bg-transparent p-0 opacity-50 hover:opacity-100"
         ),
         nav_button_previous: "absolute left-1",
         nav_button_next: "absolute right-1",
         table: "w-full border-collapse space-x-1",
         head_row: "flex",
-        head_cell: "text-muted-foreground rounded-md w-8 font-normal text-[0.8rem]",
+        head_cell:
+          "text-muted-foreground rounded-md w-8 font-normal text-[0.8rem]",
         row: "flex w-full mt-2",
         cell: cn(
           "relative p-0 text-center text-sm focus-within:relative focus-within:z-20",
           props.mode === "range"
             ? "[&:has(>.day-range-end)]:rounded-r-md [&:has(>.day-range-start)]:rounded-l-md first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md"
-            : "",
+            : ""
         ),
         day: cn(
           buttonVariants({ variant: "ghost" }),
-          "size-8 p-0 font-normal aria-selected:opacity-100 flex items-center justify-center",
+          "size-8 p-0 font-normal aria-selected:opacity-100 flex items-center justify-center"
         ),
         day_range_start:
           "day-range-start aria-selected:bg-primary aria-selected:text-primary-foreground aria-selected:rounded-full",
@@ -70,10 +70,10 @@ function Calendar({
         day_hidden: "invisible",
         ...classNames,
       }}
-      components={components}
+      components={customComponents}
       {...props}
     />
   );
 }
 
-export { Calendar };
+export default Calendar;

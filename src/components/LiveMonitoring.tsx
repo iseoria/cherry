@@ -16,7 +16,7 @@ interface LiveMonitoringProps {
   onOpenMonitoring: () => void;
 }
 
-export function LiveMonitoring({ onEventDetected, events, onUpdateEventMemo, onDeleteEvent, aiInsights, onOpenMonitoring }: LiveMonitoringProps) {
+export default function LiveMonitoring({ onEventDetected, events, onUpdateEventMemo, onDeleteEvent, aiInsights, onOpenMonitoring }: LiveMonitoringProps) {
   const [currentEvents, setCurrentEvents] = useState<Array<{id: string, type: string, timestamp: Date, severity: 'low' | 'medium' | 'high'}>>([]);
   const [showNotifications, setShowNotifications] = useState(false);
   const [editingEventId, setEditingEventId] = useState<string | null>(null);
