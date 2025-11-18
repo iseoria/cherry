@@ -1,0 +1,26 @@
+{
+  "dependencies": {
+    "@reduxjs/toolkit": "^2.10.1",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "expo": "^54.0.24",
+    "expo-router": "~6.0.15",
+    "input": "^1.0.1",
+    "lucide-react-native": "^0.554.0",
+    "react": "^19.2.0",
+    "react-native-web": "^0.21.0",
+    "redux": "^5.0.1",
+    "redux-thunk": "^3.1.0",
+    "reselect": "^5.1.1",
+    "select": "^1.1.2",
+    "separator": "^0.1.0",
+    "switch": "^0.0.0",
+    "tabs": "^0.2.0",
+    "tailwind-merge": "^3.4.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.5",
+    "@types/react-native": "^0.72.8",
+    "typescript": "~5.9.2"
+  }
+}
