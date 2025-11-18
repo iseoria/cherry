@@ -28,9 +28,13 @@ dist-ssr
 *.sln
 *.sw?
 >>>>>>> origin/feat/fe-skeleton
+<<<<<<< HEAD
 node_modules
 node_modules
 node_modules
 node_modules
 node_modules
 node_modules
+=======
+.DS_Store
+>>>>>>> origin/feat/fe-skeleton
