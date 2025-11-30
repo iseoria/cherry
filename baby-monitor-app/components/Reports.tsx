@@ -1,3 +1,5 @@
+// Reports.tsx
+
 import React, { useState } from "react";
 import {
   View,
@@ -7,6 +9,12 @@ import {
   TouchableOpacity,
   TextInput,
 } from "react-native";
+import Svg, {
+  Polyline,
+  Circle,
+  Line as SvgLine,
+  Rect,
+} from "react-native-svg";
 
 interface DayRecord {
   date: string;
@@ -30,8 +38,160 @@ interface ReportsProps {
 
 type Range = "daily" | "weekly" | "monthly";
 
+interface ChartPoint {
+  label: string;
+  value: number;
+}
+
+// ===== 라인 차트 컴포넌트 =====
+const LineChart: React.FC<{
+  data: ChartPoint[];
+  color: string;
+}> = ({ data, color }) => {
+  const width = 280;
+  const height = 120;
+  const padding = 20;
+
+  const maxValue = Math.max(...data.map((d) => d.value || 0), 1);
+  const innerWidth = width - padding * 2;
+  const innerHeight = height - padding * 2;
+  const stepX = data.length > 1 ? innerWidth / (data.length - 1) : 0;
+
+  const points = data.map((d, idx) => {
+    const x = padding + stepX * idx;
+    const y =
+      padding + innerHeight - (d.value / maxValue) * innerHeight;
+    return { x, y };
+  });
+
+  const polyPointsStr = points.map((p) => `${p.x},${p.y}`).join(" ");
+
+  return (
+    <View style={{ marginTop: 8 }}>
+      <Svg width="100%" height={height}>
+        {/* 수평 그리드 */}
+        {[0, 1, 2, 3].map((i) => {
+          const y = padding + (innerHeight / 3) * i;
+          return (
+            <SvgLine
+              key={i}
+              x1={padding}
+              x2={width - padding}
+              y1={y}
+              y2={y}
+              stroke="#e5e7eb"
+              strokeDasharray="4 4"
+              strokeWidth={1}
+            />
+          );
+        })}
+        {/* 꺾은선 */}
+        <Polyline
+          points={polyPointsStr}
+          fill="none"
+          stroke={color}
+          strokeWidth={3}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        {/* 점 */}
+        {points.map((p, idx) => (
+          <Circle
+            key={idx}
+            cx={p.x}
+            cy={p.y}
+            r={4}
+            fill={color}
+          />
+        ))}
+      </Svg>
+
+      {/* X축 라벨 */}
+      <View style={styles.axisLabelRow}>
+        {data.map((d, idx) => (
+          <Text key={idx} style={styles.axisLabel}>
+            {d.label}
+          </Text>
+        ))}
+      </View>
+    </View>
+  );
+};
+
+// ===== 바 차트 컴포넌트 (뒤척임) =====
+const BarChart: React.FC<{
+  data: ChartPoint[];
+  color: string;
+}> = ({ data, color }) => {
+  const width = 280;
+  const height = 120;
+  const padding = 20;
+
+  const maxValue = Math.max(...data.map((d) => d.value || 0), 1);
+  const innerWidth = width - padding * 2;
+  const innerHeight = height - padding * 2;
+  const barWidth =
+    data.length > 0 ? innerWidth / data.length - 4 : 10;
+
+  return (
+    <View style={{ marginTop: 8 }}>
+      <Svg width="100%" height={height}>
+        {/* 수평 그리드 */}
+        {[0, 1, 2, 3].map((i) => {
+          const y = padding + (innerHeight / 3) * i;
+          return (
+            <SvgLine
+              key={i}
+              x1={padding}
+              x2={width - padding}
+              y1={y}
+              y2={y}
+              stroke="#e5e7eb"
+              strokeDasharray="4 4"
+              strokeWidth={1}
+            />
+          );
+        })}
+
+        {data.map((d, idx) => {
+          const x =
+            padding +
+            (innerWidth / data.length) * idx +
+            (innerWidth / data.length - barWidth) / 2;
+          const barHeight =
+            (d.value / maxValue) * innerHeight;
+          const y = padding + innerHeight - barHeight;
+
+          return (
+            <Rect
+              key={idx}
+              x={x}
+              y={y}
+              width={barWidth}
+              height={barHeight}
+              rx={4}
+              ry={4}
+              fill={color}
+            />
+          );
+        })}
+      </Svg>
+
+      {/* X축 라벨 */}
+      <View style={styles.axisLabelRow}>
+        {data.map((d, idx) => (
+          <Text key={idx} style={styles.axisLabel}>
+            {d.label}
+          </Text>
+        ))}
+      </View>
+    </View>
+  );
+};
+
 const Reports: React.FC<ReportsProps> = ({ dayRecords }) => {
-  const [analysisRange, setAnalysisRange] = useState<Range>("daily");
+  const [analysisRange, setAnalysisRange] =
+    useState<Range>("daily");
   const [startDate, setStartDate] = useState<string>(
     new Date().toISOString().split("T")[0],
   );
@@ -66,8 +226,12 @@ const Reports: React.FC<ReportsProps> = ({ dayRecords }) => {
     const dates = makeDateLabels();
 
     return dates.map((dateStr) => {
-      const record = dayRecords.find((r) => r.date === dateStr);
-      const totalMinutes = record ? record.sleepTime + record.napTime : 0;
+      const record = dayRecords.find(
+        (r) => r.date === dateStr,
+      );
+      const totalMinutes = record
+        ? record.sleepTime + record.napTime
+        : 0;
       const hours = totalMinutes / 60;
 
       const d = new Date(dateStr);
@@ -88,7 +252,9 @@ const Reports: React.FC<ReportsProps> = ({ dayRecords }) => {
     const dates = makeDateLabels();
 
     return dates.map((dateStr) => {
-      const record = dayRecords.find((r) => r.date === dateStr);
+      const record = dayRecords.find(
+        (r) => r.date === dateStr,
+      );
       const count = record ? record.tossingCount : 0;
 
       const d = new Date(dateStr);
@@ -121,8 +287,12 @@ const Reports: React.FC<ReportsProps> = ({ dayRecords }) => {
     };
 
     return dates.map((dateStr) => {
-      const record = dayRecords.find((r) => r.date === dateStr);
-      const score = record ? qualityToScore(record.sleepQuality) : 0;
+      const record = dayRecords.find(
+        (r) => r.date === dateStr,
+      );
+      const score = record
+        ? qualityToScore(record.sleepQuality)
+        : 0;
 
       const d = new Date(dateStr);
       const label = d.toLocaleDateString("ko-KR", {
@@ -134,7 +304,9 @@ const Reports: React.FC<ReportsProps> = ({ dayRecords }) => {
     });
   };
 
-  const qualityToScore = (quality: "excellent" | "good" | "fair" | "poor") => {
+  const qualityToScore = (
+    quality: "excellent" | "good" | "fair" | "poor",
+  ) => {
     switch (quality) {
       case "excellent":
         return 95;
@@ -147,7 +319,7 @@ const Reports: React.FC<ReportsProps> = ({ dayRecords }) => {
     }
   };
 
-  // AI 분석 생성
+  // ===== AI 분석 생성 (기존 그대로) =====
   const generateDetailedAIAnalysis = () => {
     const daysCount = getDaysCount();
     const start = new Date(startDate);
@@ -180,7 +352,8 @@ const Reports: React.FC<ReportsProps> = ({ dayRecords }) => {
 
     const avgSleepHours =
       relevantRecords.reduce(
-        (sum, record) => sum + (record.sleepTime + record.napTime),
+        (sum, record) =>
+          sum + (record.sleepTime + record.napTime),
         0,
       ) /
       relevantRecords.length /
@@ -188,7 +361,8 @@ const Reports: React.FC<ReportsProps> = ({ dayRecords }) => {
 
     const avgQualityScore =
       relevantRecords.reduce(
-        (sum, record) => sum + qualityToScore(record.sleepQuality),
+        (sum, record) =>
+          sum + qualityToScore(record.sleepQuality),
         0,
       ) / relevantRecords.length;
 
@@ -208,10 +382,11 @@ const Reports: React.FC<ReportsProps> = ({ dayRecords }) => {
         ? "주간"
         : "월간";
 
-    // 수면 패턴 설명
     const sleepPattern: string[] = [
       `선택한 ${rangeText} 기간 동안 총 ${relevantRecords.length}일의 수면 데이터를 분석했습니다.`,
-      `평균 수면 시간은 ${Math.round(avgSleepHours * 10) / 10}시간으로 ${
+      `평균 수면 시간은 ${
+        Math.round(avgSleepHours * 10) / 10
+      }시간으로 ${
         avgSleepHours >= 8
           ? "권장 수면 시간을 충족하고 있습니다"
           : "권장 수면 시간보다 부족합니다"
@@ -223,7 +398,9 @@ const Reports: React.FC<ReportsProps> = ({ dayRecords }) => {
           ? "보통 수준"
           : "다소 불안정한 수면 상태"
       }를 보이고 있습니다.`,
-      `수면 품질 점수는 평균 ${Math.round(avgQualityScore)}점으로 ${
+      `수면 품질 점수는 평균 ${Math.round(
+        avgQualityScore,
+      )}점으로 ${
         avgQualityScore >= 85
           ? "우수한"
           : avgQualityScore >= 70
@@ -234,7 +411,6 @@ const Reports: React.FC<ReportsProps> = ({ dayRecords }) => {
       } 수준입니다.`,
     ];
 
-    // 우려사항
     const concerns: {
       type: "danger" | "warning";
       title: string;
@@ -254,7 +430,9 @@ const Reports: React.FC<ReportsProps> = ({ dayRecords }) => {
         type: "warning",
         title: "울음 빈도 증가",
         description: `일평균 ${
-          Math.round((totalCrying / relevantRecords.length) * 10) / 10
+          Math.round(
+            (totalCrying / relevantRecords.length) * 10,
+          ) / 10
         }회의 울음이 감지되었습니다. 수면 환경이나 컨디션 확인이 필요할 수 있습니다.`,
       });
     }
@@ -277,14 +455,15 @@ const Reports: React.FC<ReportsProps> = ({ dayRecords }) => {
       });
     }
 
-    // 권장사항
     const recommendations: string[] = [];
     if (avgQualityScore >= 85) {
       recommendations.push(
         "현재 수면 패턴이 매우 좋습니다. 현재 환경과 루틴을 유지하세요.",
       );
     }
-    recommendations.push("일정한 수면 시간을 유지하여 생체 리듬을 안정화하세요.");
+    recommendations.push(
+      "일정한 수면 시간을 유지하여 생체 리듬을 안정화하세요.",
+    );
     if (avgTossing > 10) {
       recommendations.push(
         "뒤척임이 많은 시간대에는 실내 온도를 18-20도로 유지하고 습도를 40-60%로 조절하세요.",
@@ -320,7 +499,6 @@ const Reports: React.FC<ReportsProps> = ({ dayRecords }) => {
   const sleepQualityData = getSleepQualityAnalysis();
   const aiAnalysis = generateDetailedAIAnalysis();
 
-  // 전체 통계
   const getStats = () => {
     if (dayRecords.length === 0) {
       return {
@@ -338,8 +516,10 @@ const Reports: React.FC<ReportsProps> = ({ dayRecords }) => {
       ) / dayRecords.length / 60;
 
     const avgTossing =
-      dayRecords.reduce((sum, r) => sum + r.tossingCount, 0) /
-      dayRecords.length;
+      dayRecords.reduce(
+        (sum, r) => sum + r.tossingCount,
+        0,
+      ) / dayRecords.length;
 
     const avgQuality =
       dayRecords.reduce(
@@ -357,22 +537,8 @@ const Reports: React.FC<ReportsProps> = ({ dayRecords }) => {
 
   const stats = getStats();
 
-  // ----------------- 그래프 모드 UI -----------------
+  // ===== 그래프 모드 UI =====
   if (showGraphs) {
-    // 최대값 찾아서 바 길이 비율 조정
-    const maxSleep = Math.max(
-      ...sleepTimeData.map((d) => d.hours || 0),
-      1,
-    );
-    const maxToss = Math.max(
-      ...tossingData.map((d) => d.count || 0),
-      1,
-    );
-    const maxScore = Math.max(
-      ...sleepQualityData.map((d) => d.score || 0),
-      1,
-    );
-
     return (
       <ScrollView
         style={styles.container}
@@ -392,29 +558,33 @@ const Reports: React.FC<ReportsProps> = ({ dayRecords }) => {
             <View style={styles.rangeBox}>
               <Text style={styles.label}>기간</Text>
               <View style={styles.chipRow}>
-                {(["daily", "weekly", "monthly"] as Range[]).map((r) => (
-                  <TouchableOpacity
-                    key={r}
-                    style={[
-                      styles.chip,
-                      analysisRange === r && styles.chipActive,
-                    ]}
-                    onPress={() => setAnalysisRange(r)}
-                  >
-                    <Text
+                {(["daily", "weekly", "monthly"] as Range[]).map(
+                  (r) => (
+                    <TouchableOpacity
+                      key={r}
                       style={[
-                        styles.chipText,
-                        analysisRange === r && styles.chipTextActive,
+                        styles.chip,
+                        analysisRange === r &&
+                          styles.chipActive,
                       ]}
+                      onPress={() => setAnalysisRange(r)}
                     >
-                      {r === "daily"
-                        ? "일간"
-                        : r === "weekly"
-                        ? "주간"
-                        : "월간"}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
+                      <Text
+                        style={[
+                          styles.chipText,
+                          analysisRange === r &&
+                            styles.chipTextActive,
+                        ]}
+                      >
+                        {r === "daily"
+                          ? "일간"
+                          : r === "weekly"
+                          ? "주간"
+                          : "월간"}
+                      </Text>
+                    </TouchableOpacity>
+                  ),
+                )}
               </View>
             </View>
 
@@ -466,75 +636,44 @@ const Reports: React.FC<ReportsProps> = ({ dayRecords }) => {
             </View>
           </View>
 
-          {/* 수면 시간 추이 */}
+          {/* 수면 시간 추이 (라인) */}
           <View style={styles.graphBlock}>
             <Text style={styles.graphTitle}>
               ⏱ 수면 시간 추이 (수면+낮잠)
             </Text>
-            {sleepTimeData.map((d, idx) => (
-              <View key={idx} style={styles.graphRow}>
-                <Text style={styles.graphLabel}>{d.label}</Text>
-                <View style={styles.graphBarTrack}>
-                  <View
-                    style={[
-                      styles.graphBar,
-                      {
-                        flex:
-                          d.hours > 0 ? d.hours : 0.1,
-                        maxWidth: `${(d.hours / maxSleep) * 100}%`,
-                      },
-                    ]}
-                  />
-                </View>
-                <Text style={styles.graphValue}>{d.hours}h</Text>
-              </View>
-            ))}
+            <LineChart
+              data={sleepTimeData.map((d) => ({
+                label: d.label,
+                value: d.hours,
+              }))}
+              color="#a855f7"
+            />
           </View>
 
-          {/* 뒤척임 추이 */}
+          {/* 뒤척임 추이 (바) */}
           <View style={styles.graphBlock}>
             <Text style={styles.graphTitle}>📈 뒤척임 추이</Text>
-            {tossingData.map((d, idx) => (
-              <View key={idx} style={styles.graphRow}>
-                <Text style={styles.graphLabel}>{d.label}</Text>
-                <View style={styles.graphBarTrack}>
-                  <View
-                    style={[
-                      styles.graphBarBlue,
-                      {
-                        flex:
-                          d.count > 0 ? d.count : 0.1,
-                        maxWidth: `${(d.count / maxToss) * 100}%`,
-                      },
-                    ]}
-                  />
-                </View>
-                <Text style={styles.graphValue}>{d.count}회</Text>
-              </View>
-            ))}
+            <BarChart
+              data={tossingData.map((d) => ({
+                label: d.label,
+                value: d.count,
+              }))}
+              color="#6366f1"
+            />
           </View>
 
-          {/* 수면 질 추이 */}
+          {/* 수면 질 점수 추이 (라인) */}
           <View style={styles.graphBlock}>
-            <Text style={styles.graphTitle}>💤 수면 질 점수 추이</Text>
-            {sleepQualityData.map((d, idx) => (
-              <View key={idx} style={styles.graphRow}>
-                <Text style={styles.graphLabel}>{d.label}</Text>
-                <View style={styles.graphBarTrack}>
-                  <View
-                    style={[
-                      styles.graphBarGreen,
-                      {
-                        flex:
-                          d.score > 0 ? d.score : 0.1,
-                        maxWidth: `${(d.score / maxScore) * 100}%`,
-                      },
-                    ]}
-                  />
-                </View>
-                <Text style={styles.graphValue}>{d.score}점</Text>
-              </View>
-            ))}
+            <Text style={styles.graphTitle}>
+              💤 수면 질 분석 추이
+            </Text>
+            <LineChart
+              data={sleepQualityData.map((d) => ({
+                label: d.label,
+                value: d.score,
+              }))}
+              color="#10b981"
+            />
           </View>
         </View>
 
@@ -543,26 +682,40 @@ const Reports: React.FC<ReportsProps> = ({ dayRecords }) => {
           <Text style={styles.cardTitlePurple}>기간 내 통계</Text>
           <View style={styles.statsGrid}>
             <View style={styles.statBox}>
-              <Text style={styles.statLabel}>평균 수면시간</Text>
-              <Text style={[styles.statValue, styles.textPurple]}>
+              <Text style={styles.statLabel}>
+                평균 수면시간
+              </Text>
+              <Text
+                style={[styles.statValue, styles.textPurple]}
+              >
                 {Math.round(stats.avgSleep * 10) / 10}시간
               </Text>
             </View>
             <View style={styles.statBox}>
-              <Text style={styles.statLabel}>평균 뒤척임</Text>
-              <Text style={[styles.statValue, styles.textIndigo]}>
+              <Text style={styles.statLabel}>
+                평균 뒤척임
+              </Text>
+              <Text
+                style={[styles.statValue, styles.textIndigo]}
+              >
                 {Math.round(stats.avgTossing)}회
               </Text>
             </View>
             <View style={styles.statBox}>
-              <Text style={styles.statLabel}>평균 수면 품질</Text>
-              <Text style={[styles.statValue, styles.textGreen]}>
+              <Text style={styles.statLabel}>
+                평균 수면 품질
+              </Text>
+              <Text
+                style={[styles.statValue, styles.textGreen]}
+              >
                 {Math.round(stats.avgQuality)}점
               </Text>
             </View>
             <View style={styles.statBox}>
               <Text style={styles.statLabel}>총 이벤트</Text>
-              <Text style={[styles.statValue, styles.textOrange]}>
+              <Text
+                style={[styles.statValue, styles.textOrange]}
+              >
                 {stats.totalEvents}건
               </Text>
             </View>
@@ -572,7 +725,7 @@ const Reports: React.FC<ReportsProps> = ({ dayRecords }) => {
     );
   }
 
-  // ----------------- 기본(텍스트 AI 리포트) 모드 UI -----------------
+  // ===== 기본 AI 리포트 모드 =====
   return (
     <ScrollView
       style={styles.container}
@@ -592,29 +745,33 @@ const Reports: React.FC<ReportsProps> = ({ dayRecords }) => {
           <View style={styles.rangeBox}>
             <Text style={styles.label}>기간</Text>
             <View style={styles.chipRow}>
-              {(["daily", "weekly", "monthly"] as Range[]).map((r) => (
-                <TouchableOpacity
-                  key={r}
-                  style={[
-                    styles.chip,
-                    analysisRange === r && styles.chipActive,
-                  ]}
-                  onPress={() => setAnalysisRange(r)}
-                >
-                  <Text
+              {(["daily", "weekly", "monthly"] as Range[]).map(
+                (r) => (
+                  <TouchableOpacity
+                    key={r}
                     style={[
-                      styles.chipText,
-                      analysisRange === r && styles.chipTextActive,
+                      styles.chip,
+                      analysisRange === r &&
+                        styles.chipActive,
                     ]}
+                    onPress={() => setAnalysisRange(r)}
                   >
-                    {r === "daily"
-                      ? "일간"
-                      : r === "weekly"
-                      ? "주간"
-                      : "월간"}
-                  </Text>
-                </TouchableOpacity>
-              ))}
+                    <Text
+                      style={[
+                        styles.chipText,
+                        analysisRange === r &&
+                          styles.chipTextActive,
+                      ]}
+                    >
+                      {r === "daily"
+                        ? "일간"
+                        : r === "weekly"
+                        ? "주간"
+                        : "월간"}
+                    </Text>
+                  </TouchableOpacity>
+                ),
+              )}
             </View>
           </View>
 
@@ -635,20 +792,28 @@ const Reports: React.FC<ReportsProps> = ({ dayRecords }) => {
       <View style={[styles.card, styles.cardGradientSoft]}>
         <View style={styles.rowCenter}>
           <Text style={styles.iconText}>🧠</Text>
-          <Text style={styles.cardTitlePurple}>AI 수면 분석 리포트</Text>
+          <Text style={styles.cardTitlePurple}>
+            AI 수면 분석 리포트
+          </Text>
         </View>
 
         <View style={styles.summaryBox}>
-          <Text style={styles.summaryText}>{aiAnalysis.summary}</Text>
+          <Text style={styles.summaryText}>
+            {aiAnalysis.summary}
+          </Text>
         </View>
 
         {/* 수면 패턴 */}
         <View style={styles.section}>
           <View style={styles.rowCenter}>
             <Text style={styles.iconTextSmall}>📈</Text>
-            <Text style={styles.sectionTitle}>수면 패턴 분석</Text>
+            <Text style={styles.sectionTitle}>
+              수면 패턴 분석
+            </Text>
           </View>
-          <View style={[styles.bubbleBox, styles.bubbleBlue]}>
+          <View
+            style={[styles.bubbleBox, styles.bubbleBlue]}
+          >
             {aiAnalysis.sleepPattern.map((line, idx) => (
               <Text key={idx} style={styles.bulletBlue}>
                 • {line}
@@ -705,9 +870,13 @@ const Reports: React.FC<ReportsProps> = ({ dayRecords }) => {
         <View style={styles.section}>
           <View style={styles.rowCenter}>
             <Text style={styles.iconTextSmall}>💡</Text>
-            <Text style={styles.sectionTitle}>개선 권장사항</Text>
+            <Text style={styles.sectionTitle}>
+              개선 권장사항
+            </Text>
           </View>
-          <View style={[styles.bubbleBox, styles.bubbleGreen]}>
+          <View
+            style={[styles.bubbleBox, styles.bubbleGreen]}
+          >
             {aiAnalysis.recommendations.map((r, idx) => (
               <Text key={idx} style={styles.bulletGreen}>
                 • {r}
@@ -719,8 +888,9 @@ const Reports: React.FC<ReportsProps> = ({ dayRecords }) => {
         {/* 안내 문구 */}
         <View style={styles.noticeBox}>
           <Text style={styles.noticeText}>
-            💡 이 분석은 AI가 수면 데이터를 기반으로 생성한 것입니다. 지속적인
-            문제가 있다면 전문가와 상담하세요.
+            💡 이 분석은 AI가 수면 데이터를 기반으로 생성한
+            것입니다. 지속적인 문제가 있다면 전문가와
+            상담하세요.
           </Text>
         </View>
       </View>
@@ -735,7 +905,9 @@ const Reports: React.FC<ReportsProps> = ({ dayRecords }) => {
           <View style={styles.rowCenter}>
             <Text style={styles.iconText}>📊</Text>
             <View>
-              <Text style={styles.cardTitlePurple}>분석 그래프</Text>
+              <Text style={styles.cardTitlePurple}>
+                분석 그래프
+              </Text>
               <Text style={styles.cardSubtitlePurple}>
                 수면 시간, 뒤척임, 수면 질 추이 그래프 보기
               </Text>
@@ -751,7 +923,6 @@ const Reports: React.FC<ReportsProps> = ({ dayRecords }) => {
 export default Reports;
 
 // ========== 스타일 ==========
-
 const styles = StyleSheet.create({
   container: { flex: 1 },
   content: { padding: 12, paddingBottom: 24, gap: 10 },
@@ -956,44 +1127,14 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: "#111827",
   },
-  graphRow: {
+  axisLabelRow: {
     flexDirection: "row",
-    alignItems: "center",
+    justifyContent: "space-between",
     marginTop: 4,
-    gap: 6,
   },
-  graphLabel: {
-    width: 60,
-    fontSize: 11,
+  axisLabel: {
+    fontSize: 10,
     color: "#6b7280",
-  },
-  graphBarTrack: {
-    flex: 1,
-    height: 10,
-    borderRadius: 999,
-    backgroundColor: "#f3f4f6",
-    overflow: "hidden",
-  },
-  graphBar: {
-    height: "100%",
-    borderRadius: 999,
-    backgroundColor: "#a855f7",
-  },
-  graphBarBlue: {
-    height: "100%",
-    borderRadius: 999,
-    backgroundColor: "#6366f1",
-  },
-  graphBarGreen: {
-    height: "100%",
-    borderRadius: 999,
-    backgroundColor: "#10b981",
-  },
-  graphValue: {
-    width: 48,
-    fontSize: 11,
-    textAlign: "right",
-    color: "#374151",
   },
   statsGrid: {
     flexDirection: "row",
@@ -1030,4 +1171,3 @@ const styles = StyleSheet.create({
     color: "#ea580c",
   },
 });
-
