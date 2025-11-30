@@ -14,9 +14,7 @@ interface LoginProps {
   onLogin: (userInfo: { name: string; email: string; avatar: string }) => void;
 }
 
-// Expo 환경변수 예시: EXPO_PUBLIC_API_BASE_URL
-const API_BASE_URL =
-  process.env.EXPO_PUBLIC_API_BASE_URL ?? "http://korean-melon.duckdns.org";
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL;
 
 const Login: React.FC<LoginProps> = ({ onLogin }) => {
   //  딥링크로 돌아왔을 때 URL에서 token / name 읽어서 로그인 처리
