@@ -38,31 +38,29 @@ export default function CameraMode({ onBack }: CameraModeProps) {
   // 1) 카메라 / 마이크 권한 요청
   // ──────────────────────────────────────
   useEffect(() => {
-    const requestPermission = async () => {
-      try {
-        // getUserMedia 호출 시 자동으로 권한 요청 (안드로이드 권한 설정은 native 쪽에 선언돼 있어야 함)
-        const stream = await mediaDevices.getUserMedia({
-          video: true,
-          audio: true,
-        });
+  const requestPermission = async () => {
+    try {
+      const stream = await mediaDevices.getUserMedia({
+        audio: true,
+        video: { facingMode: "environment" }, // 후방 카메라 사용
+      });
 
-        setHasPermission(true);
-        setLocalStream(stream);
-      } catch (e) {
-        console.warn("getUserMedia 실패:", e);
-        setHasPermission(false);
-      }
-    };
+      setHasPermission(true);
+      setLocalStream(stream);
+    } catch (e) {
+      console.warn("getUserMedia 실패:", e);
+      setHasPermission(false);
+    }
+  };
 
-    requestPermission();
+  requestPermission();
 
-    return () => {
-      // 화면 나갈 때 스트림 정리
-      if (localStream) {
-        localStream.getTracks().forEach((t) => t.stop());
-      }
-    };
-  }, []);
+  return () => {
+    if (localStream) {
+      localStream.getTracks().forEach((t) => t.stop());
+    }
+  };
+}, []);
 
   // ──────────────────────────────────────
   // 2) 시그널링 서버 연결
