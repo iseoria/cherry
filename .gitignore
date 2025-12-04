@@ -4,3 +4,4 @@ baby-monitor-app/node_modules/
 android/.gradle/
 baby-monitor-app/android/local.properties
 *.keystore
+.env
